@@ -1,5 +1,13 @@
 import React, { Component } from 'react';
 import './App.css';
+import axios from 'axios';
+
+const directions = {
+  north: '4',
+  south: '1',
+  east: '2',
+  west: '3',
+}
 
 class App extends Component {
   state = {
@@ -17,7 +25,16 @@ class App extends Component {
 
   handleSubmit = event => {
     event.preventDefault()
-    console.log(this.state)
+    let dir = directions[this.state.direction.toLowerCase()]
+    axios({
+      method: 'GET',
+      url: `http://svc.metrotransit.org/NexTrip/${this.state.route}/${dir}/${this.state.stopName}`
+    }).then(response => {
+      console.log(response)
+    }).catch(error => {
+      console.log('ERROR:', error)
+      alert('There was an error with this request.')
+    })
   }
 
   render() {
@@ -43,7 +60,7 @@ class App extends Component {
           </label>
           <br />
           <label>Direction: {' '}
-            <input name="direction" type="number"
+            <input name="direction" type="text"
               onChange={this.handleChange}
               value={this.state.direction}
             />
