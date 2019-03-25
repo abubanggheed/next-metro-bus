@@ -25,12 +25,39 @@ class App extends Component {
 
   handleSubmit = event => {
     event.preventDefault()
+    let baseUrl = 'http://svc.metrotransit.org/NexTrip'
     let dir = directions[this.state.direction.toLowerCase()]
     axios({
       method: 'GET',
-      url: `http://svc.metrotransit.org/NexTrip/${this.state.route}/${dir}/${this.state.stopName}`
+      url: `${baseUrl}/Routes`
     }).then(response => {
-      console.log(response)
+      let routeData = response.data.filter(dataPoint => (
+        dataPoint.Description.includes(this.state.route)
+      ))
+      let route = routeData.length && routeData[0].Route
+      console.log(route)
+      route && axios({
+        method: 'GET',
+        url: `${baseUrl}/Stops/${route}/${dir}`
+      }).then(response => {
+        let stopData = response.data.filter(dataPoint => (
+          dataPoint.Text.includes(this.state.stopName)
+        ))
+        let stop = stopData.length && stopData[0].Value
+        console.log(stop)
+        axios({
+          method: 'GET',
+          url: `${baseUrl}/${route}/${dir}/${stop}`
+        }).then(response => {
+          console.log(response)
+        }).catch(error => {
+          console.log('ERROR:', error)
+          alert('There was an error with this request.')
+        })
+      }).catch(error => {
+        console.log('ERROR:', error)
+        alert('There was an error with this request.')
+      })
     }).catch(error => {
       console.log('ERROR:', error)
       alert('There was an error with this request.')
