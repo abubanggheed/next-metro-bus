@@ -14,6 +14,7 @@ class App extends Component {
     route: '',
     stopName: '',
     direction: '',
+    waitTime: '',
   }
 
   handleChange = event => {
@@ -35,7 +36,6 @@ class App extends Component {
         dataPoint.Description.includes(this.state.route)
       ))
       let route = routeData.length && routeData[0].Route
-      console.log(route)
       route && axios({
         method: 'GET',
         url: `${baseUrl}/Stops/${route}/${dir}`
@@ -44,12 +44,12 @@ class App extends Component {
           dataPoint.Text.includes(this.state.stopName)
         ))
         let stop = stopData.length && stopData[0].Value
-        console.log(stop)
         axios({
           method: 'GET',
           url: `${baseUrl}/${route}/${dir}/${stop}`
         }).then(response => {
           console.log(response)
+          response.data.length && this.findNextTime(response.data)
         }).catch(error => {
           console.log('ERROR:', error)
           alert('There was an error with this request.')
@@ -61,6 +61,19 @@ class App extends Component {
     }).catch(error => {
       console.log('ERROR:', error)
       alert('There was an error with this request.')
+    })
+  }
+
+  findNextTime = data => {
+    let currentTime = Date.now()
+    let nextArrivalString = data[0].DepartureTime
+    let openingMark = nextArrivalString.indexOf('(')
+    let clossingMark = nextArrivalString.indexOf('-')
+    let nextArrival = nextArrivalString.slice(openingMark + 1, clossingMark)
+    let totalWaitMinutes = parseInt((nextArrival - currentTime)/60000)
+    this.setState({
+      ...this.state,
+      waitTime: totalWaitMinutes + ' Minutes'
     })
   }
 
@@ -95,6 +108,11 @@ class App extends Component {
           <br />
           <input type="submit" value="Get Departure Time" />
         </form>
+        <div>
+          <p>
+            {this.state.waitTime}
+          </p>
+        </div>
       </div>
     );
   }
